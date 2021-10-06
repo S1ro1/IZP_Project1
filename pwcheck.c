@@ -56,11 +56,11 @@ int level1(char str[])
     int upper_case = False;
     for (int i = 0; i < length(str); i++) //loop to check the string for upper/lower case letters       
     {
-        if (str[i] > 96 && str[i] < 123)
+        if (str[i] >= 'a'  && str[i] <= 'z')
         {
             lower_case = True;
         }
-        else if (str[i] > 64 && str[i] < 91)
+        else if (str[i] >= 'A' && str[i] <= 'Z')
         {
             upper_case = True;
         }
@@ -84,17 +84,17 @@ int level2(char str[], long long parameter)
     int groupD = False; //check for simpler way
     for (int i = 0; i < length(str); i++) //loop to check the string for upper/lower case letters
     {
-        if (str[i] > 32 && str[i] < 127)
+        if (str[i] >= '!' && str[i] <= '~')
         {
-            if (str[i] > 96 && str[i] < 123)
+            if (str[i] >= 'a' && str[i] <= 'z')
             {
                 groupA = True;
             } 
-            else if (str[i] > 64 && str[i] < 91)
+            else if (str[i] >= 'A' && str[i] <= 'Z')
             {
                 groupB = True;
             }
-            else if (str[i] > 47 && str[i] < 58)
+            else if (str[i] >= '0' && str[i] <= '9')
             {
                 groupC = True;
             }
@@ -201,32 +201,47 @@ int Collect_chars(char str[])
         }
     }
     return current;
-
 }
 
+void Length_stats(char str[], double *avg, int *min)
+{
+    static double current;
+    static double total_length;
+    static int curr_min = 101;
+
+    current += 1;
+    total_length += length(str);
+    *avg = total_length/current;
+
+    if (curr_min > length(str))
+    {
+        curr_min = length(str);
+    }
+
+    *min = curr_min;
+}    
 
 int main(int argc, char *argv[])
 {
     //variables used in the main part
     if (argc > 4 || argc < 3)
     {
-        fprintf(stderr, "Zadany spatny pocet argumentu\n");
+        fprintf(stderr, "Wrong number of command line arguments!\n");
         return 1;
     }
     char *ptr, *ptr2;
     int security = strtol(argv[1], &ptr, 10); 
     long long param = strtoll(argv[2], &ptr2, 10);
-    if (*ptr || *ptr2|| security < 1 || security > 4 || param < 1 || (!compare_str(argv[3], "--stats") && argv[3] != NULL))
+    if (*ptr || *ptr2 || security < 1 || security > 4 || param < 1 || (!compare_str(argv[3], "--stats") && argv[3] != NULL))
     {
-        fprintf(stderr, "spatne zadane argumenty");
+        fprintf(stderr, "Wrong command line arguments!");
         return 1;
     }
+   
     char str[102] = ""; //for password
     //variables used for stats
     int stats = False;
-    int min = 101;
-    int total_count = 0;
-    int total_length = 0;
+    int min;
     double avg;
     int number_of_chars;
     
@@ -260,16 +275,9 @@ int main(int argc, char *argv[])
         }
         //stats part
         if (stats == True)
-        {
-            total_count += 1;
-            total_length += length(str);
-            //check for min length
-            if (length(str) < min)
-            {
-                min = length(str);
-            }
-            avg = (double)total_length/(double)total_count; //avg length
+        {            
             number_of_chars = Collect_chars(str);
+            Length_stats(str, &avg, &min);
         }
     }
     if (stats == True)
