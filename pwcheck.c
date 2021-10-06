@@ -180,6 +180,31 @@ int level4(char str[], long long parameter)
     return True;
 }
 
+int Collect_chars(char str[])
+{
+    static int chars[128];
+    static int current;
+    for (int i = 0; i < length(str); i++)
+    {
+        int appears = False;
+        for (int j = 0; j < 128; j++)
+        {
+            if (str[i] == chars[j])
+            {
+                appears = True;
+            }
+        }
+        if (!appears)
+        {
+            chars[current] = str[i];
+            current += 1;
+        }
+    }
+    return current;
+
+}
+
+
 int main(int argc, char *argv[])
 {
     //variables used in the main part
@@ -191,39 +216,24 @@ int main(int argc, char *argv[])
     char *ptr, *ptr2;
     int security = strtol(argv[1], &ptr, 10); 
     long long param = strtoll(argv[2], &ptr2, 10);
-    if (*ptr || *ptr2)
+    if (*ptr || *ptr2|| security < 1 || security > 4 || param < 1 || !compare_str(argv[3], "--stats"))
     {
         fprintf(stderr, "spatne zadane argumenty");
         return 1;
     }
     char str[102] = ""; //for password
     //variables used for stats
-    int stats;
+    int stats = False;
     int min = 101;
     int total_count = 0;
     int total_length = 0;
-    int current = 0;
     double avg;
-    int chars[128] = { 0 }; //for existing chars
-
-    if (security < 1 || security > 4 || param < 1)
-    {
-        fprintf(stderr, "Zadany spatny level nebo parametr\n");
-        return 1;
-    }
-    if (!compare_str(argv[3], "--stats") && argv[3] != NULL)
-    {
-        fprintf(stderr, "zadany spatny volitelny argument \n");
-        return 1; 
-    }
-    else if (compare_str(argv[3], "--stats"))
+    int number_of_chars;
+    
+    if (compare_str(argv[3], "--stats"))
     {
         stats = True;
     }
-    else
-    {
-        stats = False;
-    } 
     while (fgets(str, 103, stdin) != NULL)
     {
         // length check
@@ -259,27 +269,12 @@ int main(int argc, char *argv[])
                 min = length(str);
             }
             avg = (double)total_length/(double)total_count; //avg length
-            for (int i = 0; i < length(str); i++)
-            {
-                int appears = False;
-                for (int j = 0; j < 128; j++)
-                {
-                    if (str[i] == chars[j])
-                    {
-                        appears = True;
-                    }
-                }
-                if (!appears)
-                {
-                    chars[current] = str[i];
-                    current += 1;
-                }
-            }
+            number_of_chars = Collect_chars(str);
         }
     }
     if (stats == True)
     {
-        printf("Statistika:\nRuznych znaku: %d\nMinimalni delka: %d\nPrumerna delka: %.1f\n", current, min, avg);
+        printf("Statistika:\nRuznych znaku: %d\nMinimalni delka: %d\nPrumerna delka: %.1f\n", number_of_chars, min, avg);
     }
     return 0;
 }
