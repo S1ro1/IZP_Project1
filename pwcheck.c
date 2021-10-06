@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
     char *ptr, *ptr2;
     int security = strtol(argv[1], &ptr, 10); 
     long long param = strtoll(argv[2], &ptr2, 10);
-    if (*ptr || *ptr2|| security < 1 || security > 4 || param < 1 || !compare_str(argv[3], "--stats"))
+    if (*ptr || *ptr2|| security < 1 || security > 4 || param < 1 || (!compare_str(argv[3], "--stats") && argv[3] != NULL))
     {
         fprintf(stderr, "spatne zadane argumenty");
         return 1;
