@@ -228,33 +228,129 @@ void Length_stats(char str[], double *avg, int *min)
     *min = curr_min;
 }
 
+int Check_args(int argc, int **security, long long **param)
+{
+    if (argc > 6)
+    {
+        return False;
+    }
+    if (**security < 1 || **security > 4)
+    {
+        return False;
+    }
+    if (**param < 1)
+    {
+        return False;
+    }
+    return True;
+}
+
+int Arg_handler(int argc, char *argv[], int *security, long long *param, int *stats)
+{
+    if (argc < 3 || argc > 4)
+    {
+        return False;
+    }
+    char *ptr_;
+    char *ptr2_;
+    *security = strtol(argv[1], &ptr_, 10);
+    *param = strtoll(argv[2], &ptr2_, 10);
+    if (*ptr_ || *ptr2_)
+    {
+        return False;
+    }
+    if (argc > 3)
+    {
+        if (!(compare_str(argv[3], "--stats") == True && argv[3] != NULL))
+        {
+            return False;
+        }
+        else if (compare_str(argv[3], "--stats"))
+        {
+            *stats = True;
+        }
+    }
+    if (!Check_args(argc, &security, &param))
+    {
+        return False;
+    }
+    return True;
+}
+
+int Bonus_arg_handler(int argc, char *argv[], int *security, long long *param, int *stats)
+{
+    char *ptr3_;
+    char *ptr4_;
+    int security_done = False;
+    int param_done = False;
+    int stats_done = False;
+    for (int i = 1; i < argc; i++)
+    {
+        if (compare_str(argv[i], "-l") == True && !security_done && ((i+1) < argc))
+        {
+            *security = strtol(argv[i+1], &ptr3_, 10);
+            i++;
+            security_done = True;
+            if (*ptr3_)
+            {
+                return False;
+            }
+        }
+        else if (compare_str(argv[i], "-p") == True && !param_done && ((i+1) < argc))
+        {
+            *param = strtoll(argv[i+1], &ptr4_, 10);
+            i++;
+            param_done = True;
+            if (*ptr4_)
+            {
+                return False;
+            }
+        }
+        else if (compare_str(argv[i], "--stats") == True && !stats_done)
+        {
+            stats_done = True;
+            *stats = True;
+        }
+        else
+        {
+            return False;
+        }
+    }
+    if (!Check_args(argc, &security, &param))
+    {
+        return False;
+    }
+    return True;
+}
+
+
+
 int main(int argc, char *argv[])
 {
-    if (argc > 4 || argc < 3)
+    int security = 1;
+    long long param = 1;
+    int stats = False;
+    int bool_args = Arg_handler(argc, argv, &security, &param, &stats);
+    if (!bool_args)
     {
-        fprintf(stderr, "Wrong number of command line arguments!\n");
+        security = 1;
+        param = 1;
+        stats = False;
+    }
+    int bool_bonus_args = Bonus_arg_handler(argc, argv, &security, &param, &stats);
+    if (bool_args == False && bool_bonus_args == False)
+    {
+        fprintf(stderr, "Wrong command line arguments");
         return 1;
     }
-    //Command line arguments handling
-    char *ptr, *ptr2;
-    int security = strtol(argv[1], &ptr, 10); 
-    long long param = strtoll(argv[2], &ptr2, 10); 
+
     //To store password
     char str[102] = "";  
     //Variables used for stats
-    int stats = False;
     int min;
     double avg;
     int number_of_chars;
-    if (*ptr || *ptr2 || security < 1 || security > 4 || param < 1 || (!compare_str(argv[3], "--stats") && argv[3] != NULL))
-    {
-        fprintf(stderr, "Wrong command line arguments!");
-        return 1;
-    }
-    if (compare_str(argv[3], "--stats"))
-    {
-        stats = True;
-    }
+    
     while (fgets(str, 103, stdin) != NULL)
     {
         //Length check
