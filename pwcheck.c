@@ -4,15 +4,17 @@
 
 #define True 1
 #define False 0
+
 /*TODO
-maybe reduce main size
-finish comments
+Bonus points
+Finish comments
 
 DONE
-everything else
+Basically everything
 */
 
-int length(char str[])
+//Returns a string length
+int str_length(char str[])
 {
     if (str == NULL)
     {
@@ -26,11 +28,12 @@ int length(char str[])
     return len - 1;
 }
 
+//A function to compare whether two strings are the same
 int compare_str(char str1[], char str2[])
 {
     int error = False;
     int i = 0;
-    if (length(str1) != length(str2))
+    if (str_length(str1) != str_length(str2))
     {
         return False;
     }
@@ -49,12 +52,13 @@ int compare_str(char str1[], char str2[])
     return !error;
 }
 
-//will return a password back, if meets the conditions
+//Block of functions that handle single security levels
 int level1(char str[])
 {
     int lower_case = False;
     int upper_case = False;
-    for (int i = 0; i < length(str); i++) //loop to check the string for upper/lower case letters       
+    //Loop to check the string for upper/lower case letters
+    for (int i = 0; i < str_length(str); i++)        
     {
         if (str[i] >= 'a'  && str[i] <= 'z')
         {
@@ -81,8 +85,9 @@ int level2(char str[], long long parameter)
     int groupA = False;
     int groupB = False;
     int groupC = False;
-    int groupD = False; //check for simpler way
-    for (int i = 0; i < length(str); i++) //loop to check the string for upper/lower case letters
+    int groupD = False;
+    //Loop to check the string for upper/lower case letters
+    for (int i = 0; i < str_length(str); i++)
     {
         if (str[i] >= '!' && str[i] <= '~')
         {
@@ -117,11 +122,11 @@ int level2(char str[], long long parameter)
 
 int level3(char str[], long long parameter)
 {
-    char a;     //variables to compare str[i] to str[i+1], for better visibility
-    char b;
+    //Variables to compare str[i] to str[i+1], for better visibility
+    char a, b;
     long long count = 1;
     long long max_count = 0;
-    for (int i = 0; i < (length(str)); i++)
+    for (int i = 0; i < (str_length(str)); i++)
     {
         a = str[i];
         b = str[i+1];
@@ -153,13 +158,13 @@ int level4(char str[], long long parameter)
 	int error_count;
     char temp[102] = {'0'};
 	//Moving the substring
-	for (int i = 0; i < length(str) - parameter + 1; i++)
+	for (int i = 0; i < str_length(str) - parameter + 1; i++)
 	{
         //Moving the string that is being compared to the original one
-        for (int z = 0; z < length(str) - 1 - i; z++)
+        for (int z = 0; z < str_length(str) - 1 - i; z++)
         {
             error_count = 0;
-            //comparing all the substrings
+            //Comparing all the substrings
             for (long long y = 0; y < parameter; y++)
             {
                 if (str[i+y-1] == temp[y])
@@ -180,11 +185,12 @@ int level4(char str[], long long parameter)
     return True;
 }
 
+//Keeps track of unique chars used in passwords
 int Collect_chars(char str[])
 {
     static int chars[128];
     static int current;
-    for (int i = 0; i < length(str); i++)
+    for (int i = 0; i < str_length(str); i++)
     {
         int appears = False;
         for (int j = 0; j < 128; j++)
@@ -203,6 +209,7 @@ int Collect_chars(char str[])
     return current;
 }
 
+//Keeps track of passwords length
 void Length_stats(char str[], double *avg, int *min)
 {
     static double current;
@@ -210,53 +217,52 @@ void Length_stats(char str[], double *avg, int *min)
     static int curr_min = 101;
 
     current += 1;
-    total_length += length(str);
+    total_length += str_length(str);
     *avg = total_length/current;
 
-    if (curr_min > length(str))
+    if (curr_min > str_length(str))
     {
-        curr_min = length(str);
+        curr_min = str_length(str);
     }
 
     *min = curr_min;
-}    
+}
 
 int main(int argc, char *argv[])
 {
-    //variables used in the main part
     if (argc > 4 || argc < 3)
     {
         fprintf(stderr, "Wrong number of command line arguments!\n");
         return 1;
     }
+    //Command line arguments handling
     char *ptr, *ptr2;
     int security = strtol(argv[1], &ptr, 10); 
-    long long param = strtoll(argv[2], &ptr2, 10);
+    long long param = strtoll(argv[2], &ptr2, 10); 
+    //To store password
+    char str[102] = "";  
+    //Variables used for stats
+    int stats = False;
+    int min;
+    double avg;
+    int number_of_chars;
     if (*ptr || *ptr2 || security < 1 || security > 4 || param < 1 || (!compare_str(argv[3], "--stats") && argv[3] != NULL))
     {
         fprintf(stderr, "Wrong command line arguments!");
         return 1;
     }
-   
-    char str[102] = ""; //for password
-    //variables used for stats
-    int stats = False;
-    int min;
-    double avg;
-    int number_of_chars;
-    
     if (compare_str(argv[3], "--stats"))
     {
         stats = True;
     }
     while (fgets(str, 103, stdin) != NULL)
     {
-        // length check
-        if (length(str) > 100)
+        //Length check
+        if (str_length(str) > 100)
         {
-            fprintf(stderr, "Zadane heslo presahuje 100 znakov\n");
+            fprintf(stderr, "The password exceeds the maximal length!\n");
             return 1;
-        }
+        } 
         if (security == 1 && level1(str) == True)
         {
             printf("%s", str);
@@ -273,7 +279,7 @@ int main(int argc, char *argv[])
         {
             printf("%s",str);
         }
-        //stats part
+        //Handling stats
         if (stats == True)
         {            
             number_of_chars = Collect_chars(str);
