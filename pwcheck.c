@@ -2,6 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+enum ERROR_CODES {
+    WRONG_COMMAND_LINE_ARGUMENTS = 1,
+    PASSWORD_EXCEEDS_MAX_LEN = 2
+};
+
 // Returns a string length
 int str_length(char str[]) {
     int len = 0;
@@ -23,7 +28,7 @@ bool compare_str(char str1[], char str2[]) {
             error = true;
             break;
         } else {
-            i += 1;
+            i++;
         }
     }
     return !error;
@@ -53,6 +58,9 @@ bool level2(char str[], int parameter) {
     int groupB = false;
     int groupC = false;
     int groupD = false;
+    if (parameter > 4) {
+        parameter = 4;
+    }
     // Loop to check the string for each of the character groups
     for (int i = 0; i < str_length(str); i++) {
         if (str[i] >= ' ' && str[i] <= '~') {
@@ -85,7 +93,7 @@ bool level3(char str[], int parameter) {
         b = str[i + 1];
         if (a == b) {
             // counts the length of the sequence of the same chars
-            count += 1;
+            count++;
         } else {
             if (count > max_count) {
                 max_count = count;
@@ -104,26 +112,24 @@ bool level4(char str[], int parameter) {
     int error_count;
     char temp[102] = {'0'};
     // Moves the original substring of parameter length through the password
-    for (int i = 0; i < str_length(str) - parameter + 1; i++) {
+    for (int org_str_iter = 0; org_str_iter < str_length(str) - parameter;
+         org_str_iter++) {
         // Moving the string that is being compared to the substring
-        for (int z = 0; z < str_length(str) - 1 - i; z++) {
+        for (int substr_iter = 1;
+             substr_iter < str_length(str) - parameter - org_str_iter + 1;
+             substr_iter++) {
             error_count = 0;
-            // Comparing the original substring to the second one
-            for (int y = 0; y < parameter; y++) {
+            for (int temp_iter = 0; temp_iter < parameter; temp_iter++) {
+                temp[temp_iter] = str[substr_iter + org_str_iter + temp_iter];
+                if (str[org_str_iter + temp_iter] == temp[temp_iter]) {
+                    error_count++;
+                }
                 // If error_count >= parameter, that means the equal substrings
                 // length is same/bigger than the parameter => password doesn't
                 // pass this test
-                if (str[i + y - 1] == temp[y]) {
-                    error_count += 1;
-                }
                 if (error_count == parameter) {
                     return false;
                 }
-            }
-            // creates slices of the original string to compare in the next
-            // iteration
-            for (int j = 0; j < parameter; j++) {
-                temp[j] = str[j + z + i];
             }
         }
     }
@@ -206,7 +212,7 @@ bool arg_handler(int argc, char *argv[], int *security, int *param,
     return true;
 }
 
-// Checks if the argumentsare valid compared to the bonus argument parsing
+// Checks if the arguments are valid compared to the bonus argument parsing
 // template
 bool bonus_arg_handler(int argc, char *argv[], int *security, int *param,
                        bool *stats) {
@@ -272,7 +278,7 @@ void print_correct_pw(char str[], int param, int security) {
 int main(int argc, char *argv[]) {
     int security;
     int param;
-    bool stats;
+    bool stats = false;
     // First checks if base template works
     bool check_args = arg_handler(argc, argv, &security, &param, &stats);
     // If not, resets the values to default and checks if bonus template works
@@ -286,7 +292,7 @@ int main(int argc, char *argv[]) {
     // Returns error if neither of the templates work
     if (check_args == false && check_bonus_args == false) {
         fprintf(stderr, "Wrong command line arguments");
-        return 1;
+        return WRONG_COMMAND_LINE_ARGUMENTS;
     }
     // To store password
     char str[102] = "";
@@ -297,10 +303,11 @@ int main(int argc, char *argv[]) {
     int chars[255] = {-1};
     int current = 0;
 
-    while (fgets(str, 103, stdin) != NULL) { //103 because of how my str_length() works
+    while (fgets(str, 103, stdin) !=
+           NULL) {  // 103 because of how my str_length() works
         if (str_length(str) > 100) {
             fprintf(stderr, "The password exceeds the maximal length!\n");
-            return 2;
+            return PASSWORD_EXCEEDS_MAX_LEN;
         }
         print_correct_pw(str, param, security);
         // Handling stats
