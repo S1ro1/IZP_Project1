@@ -2,18 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-enum ERROR_CODES {
-    WRONG_COMMAND_LINE_ARGUMENTS = 1,
-    PASSWORD_EXCEEDS_MAX_LEN = 2
-};
-
 // Returns a string length
 int str_length(char str[]) {
     int len = 0;
-    while (str[len] != '\0') {
+    while (str[len] != '\0' && str[len] != '\n') {
         len++;
     }
-    return len - 1;
+    return len;
 }
 
 // A function to compare whether two strings are the same
@@ -36,8 +31,8 @@ bool compare_str(char str1[], char str2[]) {
 
 // Block of functions that handle single security levels
 bool level1(char str[]) {
-    int lower_case = false;
-    int upper_case = false;
+    bool lower_case = false;
+    bool upper_case = false;
     // Loop to check the string for upper/lower case letters
     for (int i = 0; i < str_length(str); i++) {
         if (str[i] >= 'a' && str[i] <= 'z') {
@@ -53,11 +48,11 @@ bool level1(char str[]) {
     }
 }
 
-bool level2(char str[], int parameter) {
-    int groupA = false;
-    int groupB = false;
-    int groupC = false;
-    int groupD = false;
+bool level2(char str[], long parameter) {
+    bool groupA = false;
+    bool groupB = false;
+    bool groupC = false;
+    bool groupD = false;
     if (parameter > 4) {
         parameter = 4;
     }
@@ -83,11 +78,11 @@ bool level2(char str[], int parameter) {
     }
 }
 
-bool level3(char str[], int parameter) {
+bool level3(char str[], long parameter) {
     // Variables to compare str[i] to str[i+1], for better visibility
     char a, b;
-    long long count = 1;
-    long long max_count = 0;
+    int count = 1;
+    int max_count = 0;
     for (int i = 0; i < (str_length(str)); i++) {
         a = str[i];
         b = str[i + 1];
@@ -119,7 +114,7 @@ bool level4(char str[], int parameter) {
              substr_iter < str_length(str) - parameter - org_str_iter + 1;
              substr_iter++) {
             error_count = 0;
-            for (int temp_iter = 0; temp_iter < parameter; temp_iter++) {
+            for (long temp_iter = 0; temp_iter < parameter; temp_iter++) {
                 temp[temp_iter] = str[substr_iter + org_str_iter + temp_iter];
                 if (str[org_str_iter + temp_iter] == temp[temp_iter]) {
                     error_count++;
@@ -139,7 +134,7 @@ bool level4(char str[], int parameter) {
 // Keeps track of unique chars used in passwords
 void collect_chars(char str[], int chars[], int *current) {
     for (int i = 0; i < str_length(str); i++) {
-        int appears = false;
+        bool appears = false;
         // Loops through the array of chars, if str[i] is already there, then
         // it's not needed to be added
         for (int j = 0; j < 128; j++) {
@@ -169,7 +164,7 @@ void length_stats(char str[], double *pw_count, double *total_length,
 }
 
 // Checks the arguments whether they're valid
-bool check_args(int argc, int **security, int **param) {
+bool check_args(int argc, int **security, long **param) {
     if (argc > 6) {
         return false;
     }
@@ -184,7 +179,7 @@ bool check_args(int argc, int **security, int **param) {
 
 // Checks if the arguments are valid compared to the base argument parsing
 // template
-bool arg_handler(int argc, char *argv[], int *security, int *param,
+bool arg_handler(int argc, char *argv[], int *security, long *param,
                  bool *stats) {
     if (argc < 3 || argc > 4) {
         return false;
@@ -214,14 +209,14 @@ bool arg_handler(int argc, char *argv[], int *security, int *param,
 
 // Checks if the arguments are valid compared to the bonus argument parsing
 // template
-bool bonus_arg_handler(int argc, char *argv[], int *security, int *param,
+bool bonus_arg_handler(int argc, char *argv[], int *security, long *param,
                        bool *stats) {
     // To check whether arguments are numbers followed by other chars
     char *ptr3_;
     char *ptr4_;
-    int security_done = false;
-    int param_done = false;
-    int stats_done = false;
+    bool security_done = false;
+    bool param_done = false;
+    bool stats_done = false;
     // Compares each of the arguments to the bonus template
     for (int i = 1; i < argc; i++) {
         if (compare_str(argv[i], "-l") == true && !security_done &&
@@ -254,7 +249,7 @@ bool bonus_arg_handler(int argc, char *argv[], int *security, int *param,
     return true;
 }
 
-void print_correct_pw(char str[], int param, int security) {
+void print_correct_pw(char str[], long param, int security) {
     bool passed = false;
     switch (security) {
         case 1:
@@ -277,7 +272,7 @@ void print_correct_pw(char str[], int param, int security) {
 
 int main(int argc, char *argv[]) {
     int security;
-    int param;
+    long param;
     bool stats = false;
     // First checks if base template works
     bool check_args = arg_handler(argc, argv, &security, &param, &stats);
@@ -292,9 +287,8 @@ int main(int argc, char *argv[]) {
     // Returns error if neither of the templates work
     if (check_args == false && check_bonus_args == false) {
         fprintf(stderr, "Wrong command line arguments");
-        return WRONG_COMMAND_LINE_ARGUMENTS;
+        return 1;
     }
-    // To store password
     char str[102] = "";
     // Variables used for stats
     int curr_min = 101;
@@ -302,15 +296,13 @@ int main(int argc, char *argv[]) {
     double pw_count;
     int chars[255] = {-1};
     int current = 0;
-
-    while (fgets(str, 103, stdin) !=
-           NULL) {  // 103 because of how my str_length() works
+    // 103 because of how my str_length() works
+    while (fgets(str, 102, stdin) != NULL) {
         if (str_length(str) > 100) {
             fprintf(stderr, "The password exceeds the maximal length!\n");
-            return PASSWORD_EXCEEDS_MAX_LEN;
+            return 2;
         }
         print_correct_pw(str, param, security);
-        // Handling stats
         if (stats == true) {
             collect_chars(str, chars, &current);
             length_stats(str, &pw_count, &total_length, &curr_min);
