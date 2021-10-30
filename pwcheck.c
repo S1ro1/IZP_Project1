@@ -1,11 +1,19 @@
+/*
+* IZP - Projekt 1 - Prace s textem (overovani sily hesel)
+* Matej Sirovatka - xsirov00@stud.fit.vutbr.cz
+*/
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#define MAX_STR_LEN 102
+#define EXT_ASCII 256
+
 // Returns a string length
 int str_length(char str[]) {
     int len = 0;
-    while (str[len] != '\0' && str[len] != '\n') {
+    while (str[len] != '\0') {
         len++;
     }
     return len;
@@ -18,7 +26,7 @@ bool compare_str(char str1[], char str2[]) {
     if (str_length(str1) != str_length(str2)) {
         return false;
     }
-    while (str1[i] != '\0' || str2[i] != '\0') {
+    while (str1[i] != '\0' && str2[i] != '\0') {
         if (str1[i] != str2[i]) {
             error = true;
             break;
@@ -34,7 +42,7 @@ bool level1(char str[]) {
     bool lower_case = false;
     bool upper_case = false;
     // Loop to check the string for upper/lower case letters
-    for (int i = 0; i < str_length(str); i++) {
+    for (int i = 0; str[i] != '\0'; i++) {
         if (str[i] >= 'a' && str[i] <= 'z') {
             lower_case = true;
         } else if (str[i] >= 'A' && str[i] <= 'Z') {
@@ -57,7 +65,7 @@ bool level2(char str[], long parameter) {
         parameter = 4;
     }
     // Loop to check the string for each of the character groups
-    for (int i = 0; i < str_length(str); i++) {
+    for (int i = 0; str[i] != '\0'; i++) {
         if (str[i] >= ' ' && str[i] <= '~') {
             if (str[i] >= 'a' && str[i] <= 'z') {
                 groupA = true;
@@ -83,7 +91,7 @@ bool level3(char str[], long parameter) {
     char a, b;
     int count = 1;
     int max_count = 0;
-    for (int i = 0; i < (str_length(str)); i++) {
+    for (int i = 0; str[i] != '\0'; i++) {
         a = str[i];
         b = str[i + 1];
         if (a == b) {
@@ -103,23 +111,21 @@ bool level3(char str[], long parameter) {
     }
 }
 
-bool level4(char str[], int parameter) {
-    int error_count;
-    char temp[102] = {'0'};
+bool level4(char str[], long parameter) {
+    long error_count;
+    char temp[MAX_STR_LEN] = {};
+    int len = str_length(str);
     // Moves the original substring of parameter length through the password
-    for (int org_str_iter = 0; org_str_iter < str_length(str) - parameter;
-         org_str_iter++) {
+    for (int org_str_iter = 0; org_str_iter < len - parameter; org_str_iter++) {
         // Moving the string that is being compared to the substring
-        for (int substr_iter = 1;
-             substr_iter < str_length(str) - parameter - org_str_iter + 1;
-             substr_iter++) {
+        for (int substr_iter = 1; substr_iter < len - parameter - org_str_iter + 1; substr_iter++) {
             error_count = 0;
             for (long temp_iter = 0; temp_iter < parameter; temp_iter++) {
                 temp[temp_iter] = str[substr_iter + org_str_iter + temp_iter];
                 if (str[org_str_iter + temp_iter] == temp[temp_iter]) {
                     error_count++;
                 }
-                // If error_count >= parameter, that means the equal substrings
+                // If error_count == parameter, that means the equal substrings
                 // length is same/bigger than the parameter => password doesn't
                 // pass this test
                 if (error_count == parameter) {
@@ -131,29 +137,28 @@ bool level4(char str[], int parameter) {
     return level3(str, parameter);
 }
 
-// Keeps track of unique chars used in passwords
-void collect_chars(char str[], int chars[], int *current) {
-    for (int i = 0; i < str_length(str); i++) {
-        bool appears = false;
-        // Loops through the array of chars, if str[i] is already there, then
-        // it's not needed to be added
-        for (int j = 0; j < 128; j++) {
-            if (str[i] == chars[j]) {
-                appears = true;
-            }
-        }
-        // If the char in str[i] isn't in the array, it's added here and count
-        // of chars already added is incremented
-        if (!appears) {
-            chars[*current] = str[i];
-            *current += 1;
-        }
+// collects values of unique chars into array
+void collect_chars(char str[], bool chars[]) {
+    int curr = 0;
+    for (int i = 0; str[i] != '\0'; i++) {
+        curr = str[i];
+        chars[curr] = 1;
     }
 }
 
+// loops through array and sums the true values
+int nchars(bool chars[]) {
+    int sum = 0;
+    for (int i = 0; i < EXT_ASCII; i++) {
+        if (chars[i] == 1) {
+            sum++;
+        }
+    }
+    return sum;
+}
+
 // Keeps track of passwords length
-void length_stats(char str[], double *pw_count, double *total_length,
-                  int *curr_min) {
+void length_stats(char str[], double *pw_count, double *total_length, int *curr_min) {
     *pw_count += 1;
     *total_length += str_length(str);
 
@@ -179,8 +184,7 @@ bool check_args(int argc, int **security, long **param) {
 
 // Checks if the arguments are valid compared to the base argument parsing
 // template
-bool arg_handler(int argc, char *argv[], int *security, long *param,
-                 bool *stats) {
+bool arg_handler(int argc, char *argv[], int *security, long *param, bool *stats) {
     if (argc < 3 || argc > 4) {
         return false;
     }
@@ -209,8 +213,7 @@ bool arg_handler(int argc, char *argv[], int *security, long *param,
 
 // Checks if the arguments are valid compared to the bonus argument parsing
 // template
-bool bonus_arg_handler(int argc, char *argv[], int *security, long *param,
-                       bool *stats) {
+bool bonus_arg_handler(int argc, char *argv[], int *security, long *param, bool *stats) {
     // To check whether arguments are numbers followed by other chars
     char *ptr3_;
     char *ptr4_;
@@ -219,16 +222,14 @@ bool bonus_arg_handler(int argc, char *argv[], int *security, long *param,
     bool stats_done = false;
     // Compares each of the arguments to the bonus template
     for (int i = 1; i < argc; i++) {
-        if (compare_str(argv[i], "-l") == true && !security_done &&
-            ((i + 1) < argc)) {
+        if (compare_str(argv[i], "-l") == true && !security_done && ((i + 1) < argc)) {
             *security = strtol(argv[i + 1], &ptr3_, 10);
             i++;
             security_done = true;
             if (*ptr3_) {
                 return false;
             }
-        } else if (compare_str(argv[i], "-p") == true && !param_done &&
-                   ((i + 1) < argc)) {
+        } else if (compare_str(argv[i], "-p") == true && !param_done && ((i + 1) < argc)) {
             *param = strtol(argv[i + 1], &ptr4_, 10);
             i++;
             param_done = true;
@@ -249,6 +250,7 @@ bool bonus_arg_handler(int argc, char *argv[], int *security, long *param,
     return true;
 }
 
+// Handles printing pws and calling rules depending on the security
 void print_correct_pw(char str[], long param, int security) {
     bool passed = false;
     switch (security) {
@@ -266,7 +268,7 @@ void print_correct_pw(char str[], long param, int security) {
             break;
     }
     if (passed == true) {
-        printf("%s", str);
+        printf("%s\n", str);
     }
 }
 
@@ -282,8 +284,7 @@ int main(int argc, char *argv[]) {
         param = 1;
         stats = false;
     }
-    bool check_bonus_args =
-        bonus_arg_handler(argc, argv, &security, &param, &stats);
+    bool check_bonus_args = bonus_arg_handler(argc, argv, &security, &param, &stats);
     // Returns error if neither of the templates work
     if (check_args == false && check_bonus_args == false) {
         fprintf(stderr, "Wrong command line arguments");
@@ -292,19 +293,19 @@ int main(int argc, char *argv[]) {
     char str[102] = "";
     // Variables used for stats
     int curr_min = 101;
-    double total_length;
-    double pw_count;
-    int chars[255] = {-1};
-    int current = 0;
-    // 103 because of how my str_length() works
-    while (fgets(str, 102, stdin) != NULL) {
-        if (str_length(str) > 100) {
-            fprintf(stderr, "The password exceeds the maximal length!\n");
+    double total_length = 0;
+    double pw_count = 0;
+    bool chars[256] = {};
+    while (fgets(str, MAX_STR_LEN, stdin) != NULL) {
+        if (str[str_length(str) - 1] == '\n') {
+            str[str_length(str) - 1] = '\0';
+        } else {
+            fprintf(stderr, "Password exceeds the maximal length");
             return 2;
         }
         print_correct_pw(str, param, security);
         if (stats == true) {
-            collect_chars(str, chars, &current);
+            collect_chars(str, chars);
             length_stats(str, &pw_count, &total_length, &curr_min);
         }
     }
@@ -312,7 +313,7 @@ int main(int argc, char *argv[]) {
         printf(
             "Statistika:\nRuznych znaku: %d\nMinimalni delka: %d\nPrumerna "
             "delka: %.1f\n",
-            current, curr_min, total_length / pw_count);
+            nchars(chars), curr_min, total_length / pw_count);
     }
     return 0;
 }
