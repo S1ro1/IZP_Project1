@@ -87,15 +87,10 @@ bool level2(char str[], long parameter) {
 }
 
 bool level3(char str[], long parameter) {
-    // Variables to compare str[i] to str[i+1], for better visibility
-    char a, b;
     int count = 1;
     int max_count = 0;
     for (int i = 0; str[i] != '\0'; i++) {
-        a = str[i];
-        b = str[i + 1];
-        if (a == b) {
-            // counts the length of the sequence of the same chars
+        if (str[i] == str[i+1]) {
             count++;
         } else {
             if (count > max_count) {
