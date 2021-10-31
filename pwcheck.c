@@ -89,16 +89,19 @@ bool level2(char str[], long parameter) {
 bool level3(char str[], long parameter) {
     int count = 1;
     int max_count = 0;
+    // Loops through the string, and checks each char with the following one
     for (int i = 0; str[i] != '\0'; i++) {
         if (str[i] == str[i+1]) {
             count++;
         } else {
+            // Keeps track of the length of same chars
             if (count > max_count) {
                 max_count = count;
             }
             count = 1;
         }
     }
+    // Compares the biggest length of following same chars to the parameter
     if (max_count < parameter) {
         return level2(str, parameter);
     } else {
@@ -154,12 +157,13 @@ int nchars(bool chars[]) {
 
 // Keeps track of passwords length
 void length_stats(char str[], double *pw_count, double *total_length, int *curr_min) {
+    int len = str_length(str);
     *pw_count += 1;
-    *total_length += str_length(str);
+    *total_length += len;
 
     // Compares length of current password to the current minimum
-    if (*curr_min > str_length(str)) {
-        *curr_min = str_length(str);
+    if (*curr_min > len) {
+        *curr_min = len;
     }
 }
 
@@ -285,12 +289,12 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Wrong command line arguments");
         return 1;
     }
-    char str[102] = "";
+    char str[102] = {};
     // Variables used for stats
     int curr_min = 101;
     double total_length = 0;
     double pw_count = 0;
-    bool chars[256] = {};
+    bool chars[EXT_ASCII] = {};
     while (fgets(str, MAX_STR_LEN, stdin) != NULL) {
         if (str[str_length(str) - 1] == '\n') {
             str[str_length(str) - 1] = '\0';
